@@ -15,44 +15,29 @@
 name="v2ray"
 rcvar="${name}_enable"
 
-command="/usr/local/bin/v2ray"
-pidfile="/var/run/$name.pid"
-
-# read configuration and set defaults
-load_rc_config "$name"
 : ${v2ray_enable="NO"}
 : ${v2ray_user="v2ray"}
+: ${v2ray_group="v2ray"}
+: ${v2ray_env="V2RAY_LOCATION_ASSET=/usr/local/share/$name"}
 : ${v2ray_config="/usr/local/etc/$name/config.json"}
 
-command_args="-config ${v2ray_config}"
+logdir="var/log/$name"
+pidfile="/var/run/$name.pid"
+procname="/usr/local/bin/$name"
+command="/usr/sbin/daemon"
+command_args="-f -c -p ${pidfile} /usr/bin/env ${v2ray_env} ${procname} -config ${v2ray_config}"
 required_files="${v2ray_config}"
 
-export V2RAY_LOCATION_ASSET=/usr/local/share/$name
+start_precmd="v2ray_startprecmd"
 
-v2ray_start() {
-	mkdir -p /var/log/v2ray
-	chown -R v2ray:v2ray /var/log/v2ray
-        /usr/sbin/daemon -u ${v2ray_user} -p ${pidfile} ${command} ${command_args}
+v2ray_startprecmd() {
+	if [ ! -e "${pidfile}" ]; then
+		install -o "${v2ray_user}" -g "${v2ray_group}" "/dev/null" "${pidfile}"
+	fi
+	if [ ! -d "${logdir}" ]; then
+		install -o "${v2ray_user}" -g "${v2ray_group}" -d  "${logdir}"
+	fi
 }
 
-v2ray_status() {
-        if [ -e ${pidfile} ]; then
-                echo ${name} is running.
-        else
-                echo ${name} is not running.
-        fi
-}
-
-v2ray_stop() {
-        if [ -e ${pidfile} ]; then
-                kill `cat ${pidfile}`;
-        else
-                echo ${name} is not running?
-        fi
-}
-
-start_cmd="v2ray_start"
-stop_cmd="v2ray_stop"
-status_cmd="v2ray_status"
-
+load_rc_config "$name"
 run_rc_command "$1"
