@@ -21,7 +21,7 @@ rcvar="${name}_enable"
 : ${v2ray_env="V2RAY_LOCATION_ASSET=/usr/local/share/$name"}
 : ${v2ray_config="/usr/local/etc/$name/config.json"}
 
-logdir="var/log/$name"
+logdir="/var/log/$name"
 pidfile="/var/run/$name.pid"
 procname="/usr/local/bin/$name"
 command="/usr/sbin/daemon"
